@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Опросник MSI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Manrope:wght@400;500;600;700&display=swap');
+
+:root {
+  --green: #2d5a3d;
+  --green2: #1e3f2b;
+  --bg: #f4f0e8;
+  --card: #fffdf8;
+  --border: #ddd8cc;
+  --muted: #777;
+  --red: #d94f38;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Manrope', sans-serif; background: var(--bg); color: #1a1a1a; min-height: 100vh; }
+
+/* HERO */
+.hero {
+  background: var(--green);
+  color: #fff;
+  padding: 44px 20px 36px;
+  text-align: center;
+}
+.badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 5.5vw, 32px);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.hero p { font-size: 13px; opacity: 0.75; }
+
+/* WRAP */
+.wrap { max-width: 680px; margin: 0 auto; padding: 24px 14px 80px; }
+
+/* PROGRESS */
+.prog-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.prog-bar { height: 5px; background: #ddd; border-radius: 3px; margin-bottom: 24px; }
+.prog-fill { height: 100%; background: var(--green); border-radius: 3px; width: 0; transition: width .4s; }
+
+/* DEMO CARD */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+}
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--green);
+  margin-bottom: 16px;
+}
+.fields { display: flex; gap: 12px; flex-wrap: wrap; }
+.field { flex: 1; min-width: 120px; }
+.field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.field select, .field input {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  background: #fff;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field select:focus, .field input:focus { border-color: var(--green); }
+
+/* INSTRUCTION */
+.note {
+  background: #edf4ef;
+  border-left: 4px solid var(--green);
+  border-radius: 0 10px 10px 0;
+  padding: 13px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #2a3d30;
+  margin-bottom: 22px;
+}
+
+/* QUESTION */
+.qcard {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  transition: border-color .2s;
+}
+.qcard.ok { border-color: #93c9a5; }
+.qcard.err { border-color: var(--red); }
+
+.qhead { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+.qnum {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  background: var(--green);
+  color: #fff;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.qtext { font-size: 14.5px; line-height: 1.5; padding-top: 2px; }
+
+/* SCALE — горизонтальные кнопки 1-7 с подписями сверху */
+.scale-wrap { user-select: none; }
+.scale-tips {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  padding: 0 1px;
+}
+.scale-btns {
+  display: flex;
+  gap: 4px;
+}
+.scale-btns label { flex: 1; cursor: pointer; }
+.scale-btns input { display: none; }
+.sbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  transition: all .15s;
+  cursor: pointer;
+  /* минимальный размер для пальца */
+  min-height: 40px;
+}
+.scale-btns input:checked + .sbtn {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+/* hover только на не-touch */
+@media (hover: hover) {
+  .scale-btns label:hover .sbtn {
+    border-color: var(--green);
+    background: #edf4ef;
+  }
+}
+
+/* ERROR / SEND */
+.errmsg {
+  background: #fdecea;
+  border: 1px solid #f5c6c0;
+  color: #b04030;
+  border-radius: 10px;
+  padding: 11px 15px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  display: none;
+}
+.sendbtn {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin: 0 auto;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  padding: 16px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 13px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.sendbtn:hover { background: var(--green2); }
+.sendbtn:active { opacity: .85; }
+.sendbtn:disabled { background: #aaa; cursor: not-allowed; }
+.sending { display: none; text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
+
+/* THANKS */
+#ty { display: none; text-align: center; padding: 70px 20px; }
+#ty .icon { font-size: 60px; margin-bottom: 18px; }
+#ty h2 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--green); margin-bottom: 12px; }
+#ty p { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
+
+.foot { text-align: center; font-size: 11px; color: #bbb; padding-bottom: 24px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">🔒 Анонимный опрос</div>
+  <h1>Опросник источников<br>мотивации (MSI)</h1>
+  <p>30 утверждений · около 5 минут</p>
+</div>
+
+<div class="wrap" id="main">
+
+  <div class="prog-row">
+    <span>Прогресс</span>
+    <span id="ptxt">0 из 30</span>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="pfill"></div></div>
+
+  <div class="card">
+    <div class="card-title">Общие сведения</div>
+    <div class="fields">
+      <div class="field">
+        <label>Пол</label>
+        <select id="gender">
+          <option value="">— выберите —</option>
+          <option>Мужской</option>
+          <option>Женский</option>
+          <option>Не указывать</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Возраст</label>
+        <input type="number" id="age" min="14" max="80" placeholder="Полных лет" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong style="color:var(--green)">Инструкция:</strong> Оцените, насколько каждое утверждение отражает вашу точку зрения. Нет правильных или неправильных ответов — отвечайте честно, не задумываясь надолго.
+  </div>
+
+  <form id="form"></form>
+
+  <div class="errmsg" id="errmsg">⚠️ Пожалуйста, ответьте на все вопросы.</div>
+
+  <button class="sendbtn" id="sbtn" type="button" onclick="send()">Отправить ответы →</button>
+  <div class="sending" id="sending">⏳ Отправляем, подождите…</div>
+
+</div>
+
+<div id="ty">
+  <div class="icon">✅</div>
+  <h2>Спасибо!</h2>
+  <p>Ваши ответы анонимно сохранены. Это очень помогает исследованию!</p>
+</div>
+
+<div class="foot">Опросник MSI · данные хранятся анонимно</div>
+
+<script>
+const URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnRoQRvbdRbK-lvknGSXU3Ms7nriTo3JHJipqGboHwBX6XfOpsmjj_Y22PGEgZebrHi5Q-T4YPa041xfigNAfmEdmkw0UfqSwmqfZ-YrySz2KrDh4qLbAM2_Vj6Az6BiUaVBCikcf2yCCmHdJeKSqmcBep2auYsnX2HngGZ5VR8_YxAZFogdBeHk4C1kwFWjzZDpsgNYqKBWKce_FqSH77Aww86tDvzSjPNGORVamHszNk5bf1NeVboYeZo1wmh-F7F04rOFBemojbGgm3SjlCjsKu48vA&lib=MPDPvwnNtOBteZqeCC7bR-D6VvTb7D8rG';
+
+const QS = [
+  "Я люблю делать только то, что доставляет мне удовольствие",
+  "Объем моих усилий в процессе работы определяется требованиями этой работы",
+  "Для меня важно, чтобы другие одобряли моё поведение",
+  "Мои решения обычно отражают те высокие стандарты, которые я сам для себя установил",
+  "Я бы не стал работать в компании, если бы не был согласен с её целями",
+  "Если мне не нравится то, что надо делать на работе, я бросаю эту работу",
+  "Каждый час работы должен быть оплачен",
+  "Я часто принимаю решение на основании того, что подумают другие",
+  "Для меня важно работать в такой организации, которая позволяла бы мне использовать мои способности и опыт",
+  "Я должен поверить в идею, прежде чем начать работать над её воплощением",
+  "Я часто откладываю работу, если можно заняться чем-то более интересным",
+  "Я работал бы более интенсивно, если бы был уверен, что получу более высокую оплату моих усилий",
+  "Я упорно работаю над задачей, если её выполнение связано с общественным признанием",
+  "Я стараюсь добиваться того, чтобы мои решения соответствовали моим личным стандартам поведения",
+  "Пока я не поверю в идею, я не могу работать по-настоящему упорно",
+  "Когда я выбираю работу, то останавливаюсь на той, которая кажется мне наиболее интересной",
+  "Когда я выбираю работу, то останавливаюсь на той, где больше платят",
+  "Если я выбираю работу, то ищу такую, в которой успех принесёт мне признание",
+  "Я считаю себя человеком, который сам себя мотивирует",
+  "Когда я выбираю компанию, то ищу ту, которая поддерживала бы мои убеждения и ценности",
+  "Я провожу своё время с теми людьми, с которыми мне интереснее всего",
+  "Мой любимый день на работе — день зарплаты",
+  "Те люди, у кого больше друзей, живут более полной жизнью",
+  "Мне нравится делать то, что даёт ощущение личного достижения",
+  "Для того чтобы я мог упорно работать, цели компании должны совпадать с моими ценностями",
+  "Если выбирать между двумя работами, то критерием для меня будет: «А какая из них интереснее?»",
+  "Нужно всегда «держать глаза и уши открытыми», чтобы получать информацию о лучших местах работы",
+  "Я прилагаю максимальные усилия, если мне известно, что это будет замечено наиболее влиятельными людьми в организации",
+  "Мне нужно знать, что своими умениями и ценностями я вношу вклад в успех организации",
+  "Если я разделяю цели компании, то не имеет значения, я ли добился успеха"
+];
+
+const form = document.getElementById('form');
+
+QS.forEach((q, i) => {
+  const n = i + 1;
+  const btns = [1,2,3,4,5,6,7].map(v => `
+    <label>
+      <input type="radio" name="q${n}" value="${v}">
+      <span class="sbtn">${v}</span>
+    </label>`).join('');
+
+  const div = document.createElement('div');
+  div.className = 'qcard';
+  div.id = 'c' + n;
+  div.innerHTML = `
+    <div class="qhead">
+      <div class="qnum">${n}</div>
+      <div class="qtext">${q}</div>
+    </div>
+    <div class="scale-wrap">
+      <div class="scale-tips"><span>← Полное НЕТ</span><span>Полное ДА →</span></div>
+      <div class="scale-btns">${btns}</div>
+    </div>`;
+  form.appendChild(div);
+});
+
+document.addEventListener('change', e => {
+  if (e.target.type !== 'radio') return;
+  let n = 0;
+  QS.forEach((_, i) => {
+    const c = document.getElementById('c'+(i+1));
+    if (document.querySelector(`input[name="q${i+1}"]:checked`)) {
+      n++; c.classList.add('ok'); c.classList.remove('err');
+    }
+  });
+  document.getElementById('ptxt').textContent = n + ' из 30';
+  document.getElementById('pfill').style.width = (n/30*100) + '%';
+});
+
+async function send() {
+  const bad = [];
+  const ans = {};
+  QS.forEach((_, i) => {
+    const r = document.querySelector(`input[name="q${i+1}"]:checked`);
+    if (r) { ans['q'+(i+1)] = +r.value; }
+    else { bad.push(i+1); document.getElementById('c'+(i+1)).classList.add('err'); }
+  });
+  if (bad.length) {
+    document.getElementById('errmsg').style.display = 'block';
+    document.getElementById('c'+bad[0]).scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  const keys = {
+    'Внутренние процессы':        [1,6,11,16,21,26],
+    'Инструментальная мотивация': [2,7,12,17,22,27],
+    'Внешняя Я-концепция':        [3,8,13,18,23,28],
+    'Внутренняя Я-концепция':     [4,9,14,19,24,29],
+    'Интернализация цели':        [5,10,15,20,25,30]
+  };
+  const scores = {};
+  for (const [k,v] of Object.entries(keys))
+    scores[k] = (v.reduce((a,n)=>a+ans['q'+n],0)/6).toFixed(2);
+
+  const btn = document.getElementById('sbtn');
+  btn.disabled = true; btn.textContent = 'Отправляем…';
+  document.getElementById('sending').style.display = 'block';
+  document.getElementById('errmsg').style.display = 'none';
+
+  try {
+    await fetch(URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        timestamp: new Date().toLocaleString('ru-RU'),
+        gender: document.getElementById('gender').value || 'не указан',
+        age:    document.getElementById('age').value    || 'не указан',
+        ...ans, ...scores
+      })
+    });
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('ty').style.display = 'block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Отправить ответы →';
+    document.getElementById('sending').style.display = 'none';
+    alert('Ошибка сети. Проверь интернет и попробуй снова.');
+  }
+}
+</script>
+</body>
+</html>
